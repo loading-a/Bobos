@@ -254,6 +254,7 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             position: relative;
+            z-index: 105;
         }
 
         .header__button::before {
@@ -780,7 +781,7 @@
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            z-index: 998;
+            z-index: 997;
             animation: fadeIn 0.4s ease;
         }
 
@@ -799,12 +800,13 @@
             backdrop-filter: blur(50px);
             -webkit-backdrop-filter: blur(50px);
             border-left: 1px solid var(--border);
-            z-index: 999;
+            z-index: 998;
             display: flex;
             flex-direction: column;
             transform: translateX(100%);
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: -12px 0 60px rgba(0, 0, 0, 0.6);
+            will-change: transform;
         }
 
         .menu-overlay.active {
@@ -847,6 +849,10 @@
             color: var(--primary);
             border-color: var(--primary);
             box-shadow: 0 0 12px rgba(15, 255, 136, 0.2);
+        }
+
+        .menu-overlay__close:active {
+            transform: scale(0.9);
         }
 
         .menu-overlay__profile {
@@ -965,6 +971,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             letter-spacing: -0.3px;
+            font-family: 'Inter', sans-serif;
         }
 
         .menu-overlay__logout:hover {
@@ -1090,7 +1097,7 @@
                 <span class="header__logo-icon">🦀</span>
                 <span class="header__logo-text">Крабик</span>
             </div>
-            <button class="header__button" id="menuBtn" title="Меню">☰</button>
+            <button class="header__button" id="menuBtn">☰</button>
         </div>
 
         <!-- Content -->
@@ -1107,7 +1114,7 @@
                     <div class="profile__id">
                         <span>ID:</span>
                         <span class="profile__id-text">123456</span>
-                        <button class="profile__id-copy" id="copyIdBtn" title="Копировать">📋</button>
+                        <button class="profile__id-copy" id="copyIdBtn">📋</button>
                     </div>
                 </div>
 
@@ -1204,207 +1211,235 @@
     </div>
 
     <script>
-        // Telegram Web App
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-            tg.setHeaderColor('transparent');
-            tg.setBackgroundColor('#020304');
-        }
-
-        // Elements
-        const menuBtn = document.getElementById('menuBtn');
-        const menuCloseBtn = document.getElementById('menuCloseBtn');
-        const menuOverlay = document.getElementById('menuOverlay');
-        const menuBackdrop = document.getElementById('menuBackdrop');
-
-        // Menu Management
-        function openMenu() {
-            menuOverlay.classList.add('active');
-            menuBackdrop.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeMenu() {
-            menuOverlay.classList.remove('active');
-            menuBackdrop.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        menuBtn.addEventListener('click', openMenu);
-        menuCloseBtn.addEventListener('click', closeMenu);
-        menuBackdrop.addEventListener('click', closeMenu);
-
-        document.querySelectorAll('.menu-item').forEach(item => {
-            item.addEventListener('click', closeMenu);
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM ready, initializing...');
+            initApp();
         });
 
-        // Swipe to close menu
-        let touchStartX = 0;
-        let touchEndX = 0;
+        function initApp() {
+            // Telegram Web App
+            const tg = window.Telegram?.WebApp;
+            if (tg) {
+                tg.ready();
+                tg.expand();
+                tg.setHeaderColor('transparent');
+                tg.setBackgroundColor('#020304');
+                console.log('Telegram WebApp initialized');
+            }
 
-        document.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-        }, false);
+            // Get menu elements
+            const menuBtn = document.getElementById('menuBtn');
+            const menuCloseBtn = document.getElementById('menuCloseBtn');
+            const menuOverlay = document.getElementById('menuOverlay');
+            const menuBackdrop = document.getElementById('menuBackdrop');
 
-        document.addEventListener('touchend', (e) => {
-            touchEndX = e.changedTouches[0].screenX;
-            if (touchStartX - touchEndX > 50 && menuOverlay.classList.contains('active')) {
+            console.log('Menu elements:', { menuBtn, menuCloseBtn, menuOverlay, menuBackdrop });
+
+            // Menu Management Functions
+            function openMenu() {
+                console.log('Opening menu...');
+                menuOverlay.classList.add('active');
+                menuBackdrop.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMenu() {
+                console.log('Closing menu...');
+                menuOverlay.classList.remove('active');
+                menuBackdrop.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            // Menu Button Events
+            menuBtn.addEventListener('click', function(e) {
+                console.log('Menu button clicked');
+                e.preventDefault();
+                openMenu();
+            });
+
+            menuCloseBtn.addEventListener('click', function(e) {
+                console.log('Close button clicked');
+                e.preventDefault();
                 closeMenu();
-            }
-        }, false);
-
-        // Ripple Effect
-        document.querySelectorAll('.btn-create').forEach(btn => {
-            btn.addEventListener('mousemove', (e) => {
-                const rect = btn.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                btn.style.setProperty('--x', x + 'px');
-                btn.style.setProperty('--y', y + 'px');
             });
-        });
 
-        // Copy ID
-        document.getElementById('copyIdBtn').addEventListener('click', () => {
-            const id = '123456';
-            navigator.clipboard.writeText(id).then(() => {
-                const btn = document.getElementById('copyIdBtn');
-                const originalText = btn.textContent;
-                btn.textContent = '✓';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
-                hapticFeedback('light');
+            menuBackdrop.addEventListener('click', function(e) {
+                console.log('Backdrop clicked');
+                e.preventDefault();
+                closeMenu();
             });
-        });
 
-        // Button Events
-        document.getElementById('createBtn').addEventListener('click', () => {
-            showToast('✨ Функция создания ссылки');
-            hapticFeedback('medium');
-        });
+            // Menu Items
+            const menuItems = [
+                { id: 'statsMenuItem', label: '📊 Статистика' },
+                { id: 'shopMenuItem', label: '🛒 Купить ссылки' },
+                { id: 'bonusMenuItem', label: '🎁 Бонусы' },
+                { id: 'historyMenuItem', label: '🕘 История' },
+                { id: 'supportMenuItem', label: '💬 Поддержка' },
+                { id: 'settingsMenuItem', label: '⚙️ Настройки' },
+                { id: 'faqMenuItem', label: '❓ FAQ' }
+            ];
 
-        document.getElementById('statsMenuItem').addEventListener('click', () => {
-            showToast('📊 Статистика');
-            hapticFeedback('light');
-        });
-
-        document.getElementById('shopMenuItem').addEventListener('click', () => {
-            showToast('🛒 Купить ссылки');
-            hapticFeedback('light');
-        });
-
-        document.getElementById('bonusMenuItem').addEventListener('click', () => {
-            showToast('🎁 Бонусы');
-            hapticFeedback('light');
-        });
-
-        document.getElementById('historyMenuItem').addEventListener('click', () => {
-            showToast('🕘 История');
-            hapticFeedback('light');
-        });
-
-        document.getElementById('supportMenuItem').addEventListener('click', () => {
-            showToast('💬 Поддержка');
-            hapticFeedback('light');
-        });
-
-        document.getElementById('settingsMenuItem').addEventListener('click', () => {
-            showToast('⚙️ Настройки');
-            hapticFeedback('light');
-        });
-
-        document.getElementById('faqMenuItem').addEventListener('click', () => {
-            showToast('❓ FAQ');
-            hapticFeedback('light');
-        });
-
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            if (tg) {
-                tg.sendData(JSON.stringify({ action: 'logout' }));
-            }
-            hapticFeedback('heavy');
-        });
-
-        // Toast Notification
-        function showToast(message) {
-            if (tg) {
-                tg.showAlert(message);
-            } else {
-                alert(message);
-            }
-        }
-
-        // Haptic Feedback
-        function hapticFeedback(type = 'light') {
-            if (tg?.HapticFeedback) {
-                if (type === 'light') {
-                    tg.HapticFeedback.impactOccurred('light');
-                } else if (type === 'medium') {
-                    tg.HapticFeedback.impactOccurred('medium');
-                } else if (type === 'heavy') {
-                    tg.HapticFeedback.impactOccurred('heavy');
-                }
-            }
-        }
-
-        // Add haptic feedback to buttons
-        document.querySelectorAll('.btn-create, .header__button, .menu-item, .stat-card, .link-item__btn').forEach(btn => {
-            btn.addEventListener('click', () => hapticFeedback('light'));
-        });
-
-        // Example links data
-        const links = [
-            { id: 1, name: 'Ссылка 1', status: 'active', date: '28 июня', uses: 42 },
-            { id: 2, name: 'Ссылка 2', status: 'active', date: '25 июня', uses: 18 },
-            { id: 3, name: 'Ссылка 3', status: 'inactive', date: '20 июня', uses: 5 }
-        ];
-
-        function renderLinks() {
-            const linksList = document.getElementById('linksList');
-            
-            if (links.length === 0) {
-                linksList.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state__icon">🔗</div>
-                        <div class="empty-state__title">Нет ссылок</div>
-                        <div class="empty-state__text">Создайте первую ссылку чтобы начать</div>
-                    </div>
-                `;
-                return;
-            }
-
-            linksList.innerHTML = links.map(link => `
-                <div class="link-item">
-                    <div class="link-item__content">
-                        <div class="link-item__name">${link.name}</div>
-                        <div class="link-item__meta">
-                            <span class="link-item__badge">${link.status === 'active' ? '✓ Active' : '✗ Inactive'}</span>
-                            <span>${link.date}</span>
-                            <span>📊 ${link.uses}</span>
-                        </div>
-                    </div>
-                    <div class="link-item__actions">
-                        <button class="link-item__btn" title="Копировать">📋</button>
-                        <button class="link-item__btn" title="Меню">⋮</button>
-                    </div>
-                </div>
-            `).join('');
-
-            document.querySelectorAll('.link-item__btn').forEach((btn, index) => {
-                if (index % 2 === 0) {
-                    btn.addEventListener('click', () => {
+            menuItems.forEach(item => {
+                const element = document.getElementById(item.id);
+                if (element) {
+                    element.addEventListener('click', function() {
+                        console.log('Menu item clicked:', item.label);
+                        showToast(item.label);
                         hapticFeedback('light');
-                        showToast('Ссылка скопирована ✓');
+                        closeMenu();
                     });
                 }
             });
-        }
 
-        // Initial render
-        renderLinks();
+            // Copy ID Button
+            const copyIdBtn = document.getElementById('copyIdBtn');
+            if (copyIdBtn) {
+                copyIdBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const id = '123456';
+                    navigator.clipboard.writeText(id).then(() => {
+                        const originalText = copyIdBtn.textContent;
+                        copyIdBtn.textContent = '✓';
+                        setTimeout(() => {
+                            copyIdBtn.textContent = originalText;
+                        }, 2000);
+                        hapticFeedback('light');
+                        showToast('ID скопирован в буфер обмена ✓');
+                    });
+                });
+            }
+
+            // Create Button
+            const createBtn = document.getElementById('createBtn');
+            if (createBtn) {
+                createBtn.addEventListener('click', function() {
+                    console.log('Create button clicked');
+                    showToast('✨ Функция создания ссылки');
+                    hapticFeedback('medium');
+                });
+
+                createBtn.addEventListener('mousemove', (e) => {
+                    const rect = createBtn.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    createBtn.style.setProperty('--x', x + 'px');
+                    createBtn.style.setProperty('--y', y + 'px');
+                });
+            }
+
+            // Logout Button
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    console.log('Logout button clicked');
+                    if (tg) {
+                        tg.sendData(JSON.stringify({ action: 'logout' }));
+                    }
+                    hapticFeedback('heavy');
+                    showToast('Выход...');
+                });
+            }
+
+            // Swipe to close menu
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            document.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, false);
+
+            document.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                if (touchStartX - touchEndX > 50 && menuOverlay.classList.contains('active')) {
+                    closeMenu();
+                }
+            }, false);
+
+            // Add haptic feedback to all interactive elements
+            document.querySelectorAll('.btn-create, .header__button, .menu-item, .stat-card, .link-item__btn, .profile__id-copy').forEach(btn => {
+                btn.addEventListener('click', () => hapticFeedback('light'));
+            });
+
+            // Toast Notification
+            function showToast(message) {
+                if (tg) {
+                    tg.showAlert(message);
+                } else {
+                    console.log('Toast:', message);
+                }
+            }
+
+            // Haptic Feedback
+            function hapticFeedback(type = 'light') {
+                if (tg?.HapticFeedback) {
+                    try {
+                        if (type === 'light') {
+                            tg.HapticFeedback.impactOccurred('light');
+                        } else if (type === 'medium') {
+                            tg.HapticFeedback.impactOccurred('medium');
+                        } else if (type === 'heavy') {
+                            tg.HapticFeedback.impactOccurred('heavy');
+                        }
+                    } catch (e) {
+                        console.log('Haptic feedback error:', e);
+                    }
+                }
+            }
+
+            // Example links data
+            const links = [
+                { id: 1, name: 'Ссылка 1', status: 'active', date: '28 июня', uses: 42 },
+                { id: 2, name: 'Ссылка 2', status: 'active', date: '25 июня', uses: 18 },
+                { id: 3, name: 'Ссылка 3', status: 'inactive', date: '20 июня', uses: 5 }
+            ];
+
+            function renderLinks() {
+                const linksList = document.getElementById('linksList');
+                
+                if (links.length === 0) {
+                    linksList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state__icon">🔗</div>
+                            <div class="empty-state__title">Нет ссылок</div>
+                            <div class="empty-state__text">Создайте первую ссылку чтобы начать</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                linksList.innerHTML = links.map(link => `
+                    <div class="link-item">
+                        <div class="link-item__content">
+                            <div class="link-item__name">${link.name}</div>
+                            <div class="link-item__meta">
+                                <span class="link-item__badge">${link.status === 'active' ? '✓ Active' : '✗ Inactive'}</span>
+                                <span>${link.date}</span>
+                                <span>📊 ${link.uses}</span>
+                            </div>
+                        </div>
+                        <div class="link-item__actions">
+                            <button class="link-item__btn" title="Копировать">📋</button>
+                            <button class="link-item__btn" title="Меню">⋮</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                document.querySelectorAll('.link-item__btn').forEach((btn, index) => {
+                    if (index % 2 === 0) {
+                        btn.addEventListener('click', () => {
+                            hapticFeedback('light');
+                            showToast('Ссылка скопирована ✓');
+                        });
+                    }
+                });
+            }
+
+            // Initial render
+            renderLinks();
+            console.log('App initialized successfully');
+        }
     </script>
 </body>
 </html>
