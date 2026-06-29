@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>крабик - мини-приложение</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background: #0a0e13;
+            color: #ffffff;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #1a2332;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2a3a4a;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 56px;
+            padding: 0 16px;
+            background: #141b26;
+            border-bottom: 1px solid #1a2332;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header__left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header__logo {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #00d4ff 0%, #0fff88 100%);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #0a0e13;
+            font-weight: 700;
+        }
+
+        .header__title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .header__subtitle {
+            font-size: 11px;
+            color: #8892a0;
+            margin-left: 4px;
+        }
+
+        .header__menu-btn {
+            width: 32px;
+            height: 32px;
+            background: none;
+            border: none;
+            color: #8892a0;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease;
+            padding: 0;
+        }
+
+        .header__menu-btn:active {
+            color: #0fff88;
+        }
+
+        /* Profile Card */
+        .profile-card {
+            margin: 16px;
+            padding: 20px;
+            background: #141b26;
+            border: 1px solid #1a2332;
+            border-radius: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .profile-card:hover {
+            border-color: #2a3a4a;
+        }
+
+        .profile__avatar-wrapper {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 16px;
+        }
+
+        .profile__avatar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #00d4ff 0%, #0fff88 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 44px;
+            border: 2px solid #0fff88;
+            box-shadow: 0 0 24px rgba(15, 255, 136, 0.3);
+        }
+
+        .profile__avatar.online::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: #0fff88;
+            border-radius: 50%;
+            bottom: 0;
+            right: 0;
+            border: 3px solid #0a0e13;
+            box-shadow: 0 0 8px rgba(15, 255, 136, 0.6);
+        }
+
+        .profile__name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .profile__status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #0fff88;
+            margin-bottom: 12px;
+        }
+
+        .profile__status-dot {
+            width: 6px;
+            height: 6px;
+            background: #0fff88;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .profile__id {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #8892a0;
+        }
+
+        .profile__id-text {
+            background: #0a0e13;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #1a2332;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .profile__id-copy {
+            width: 24px;
+            height: 24px;
+            background: #1a2332;
+            border: 1px solid #2a3a4a;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #8892a0;
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+
+        .profile__id-copy:active {
+            background: #2a3a4a;
+            color: #0fff88;
+        }
+
+        /* Menu Item */
+        .menu-item {
+            margin: 12px 16px;
+            padding: 12px 16px;
+            background: #141b26;
+            border: 1px solid #1a2332;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            color: #ffffff;
+        }
+
+        .menu-item:active {
+            background: #1a2536;
+            border-color: #0fff88;
+        }
+
+        .menu-item__left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-item__icon {
+            font-size: 18px;
+        }
+
+        .menu-item__arrow {
+            color: #8892a0;
+            font-size: 14px;
+        }
+
+        /* Create Button */
+        .btn-create {
+            margin: 12px 16px;
+            padding: 0 20px;
+            height: 48px;
+            width: calc(100% - 32px);
+            background: linear-gradient(135deg, #0fff88 0%, #0dcc6a 100%);
+            border: none;
+            border-radius: 12px;
+            color: #0a0e13;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(15, 255, 136, 0.3);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-create:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(15, 255, 136, 0.2);
+        }
+
+        .btn-create::before {
+            content: '+';
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* Stats Section */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 12px 16px;
+        }
+
+        .stat-card {
+            background: #141b26;
+            border: 1px solid #1a2332;
+            border-radius: 12px;
+            padding: 16px 12px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            border-color: #2a3a4a;
+            background: #1a2536;
+        }
+
+        .stat-card__icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card__value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0fff88;
+            margin-bottom: 4px;
+            line-height: 1;
+        }
+
+        .stat-card__label {
+            font-size: 11px;
+            color: #8892a0;
+            font-weight: 500;
+        }
+
+        /* Welcome Section */
+        .welcome-section {
+            margin: 12px 16px;
+            padding: 24px 16px;
+            background: #141b26;
+            border: 1px solid #1a2332;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .crab-animation {
+            font-size: 64px;
+            margin-bottom: 16px;
+            animation: float 3s ease-in-out infinite;
+            display: block;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-12px);
+            }
+        }
+
+        .welcome-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .welcome-text {
+            font-size: 13px;
+            color: #8892a0;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 16px;
+            text-align: center;
+            font-size: 11px;
+            color: #8892a0;
+            margin-bottom: 16px;
+        }
+
+        .footer__text {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+
+        .footer__version {
+            font-size: 10px;
+            color: #5a6a7a;
+        }
+
+        /* Menu Overlay */
+        .menu-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            max-width: 280px;
+            height: 100%;
+            background: #0a0e13;
+            border-left: 1px solid #1a2332;
+            z-index: 1000;
+            overflow-y: auto;
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .menu-overlay.active {
+            display: block;
+        }
+
+        .menu-overlay-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .menu-overlay-backdrop.active {
+            display: block;
+        }
+
+        .menu-overlay__header {
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            border-bottom: 1px solid #1a2332;
+        }
+
+        .menu-overlay__title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .menu-overlay__close {
+            width: 32px;
+            height: 32px;
+            background: none;
+            border: none;
+            color: #8892a0;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease;
+            padding: 0;
+        }
+
+        .menu-overlay__close:active {
+            color: #0fff88;
+        }
+
+        .menu-overlay__content {
+            padding: 12px 0;
+        }
+
+        .menu-overlay__item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+            background: transparent;
+        }
+
+        .menu-overlay__item:active {
+            background: #141b26;
+            border-left-color: #0fff88;
+            color: #0fff88;
+        }
+
+        .menu-overlay__item-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .menu-overlay__item-text {
+            flex: 1;
+        }
+
+        .menu-overlay__divider {
+            height: 1px;
+            background: #1a2332;
+            margin: 8px 0;
+        }
+
+        .menu-overlay__logout {
+            margin: 12px 16px;
+            padding: 12px 16px;
+            background: #1a2332;
+            border: 1px solid #2a3a4a;
+            border-radius: 8px;
+            color: #ff3b30;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .menu-overlay__logout:active {
+            background: rgba(255, 59, 48, 0.1);
+            border-color: #ff3b30;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .menu-overlay {
+                max-width: 100%;
+            }
+
+            .stat-card__value {
+                font-size: 28px;
+            }
+
+            .profile__avatar {
+                font-size: 40px;
+            }
+
+            .welcome-title {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header__left">
+            <div class="header__logo">🦀</div>
+            <div>
+                <div class="header__title">крабик</div>
+                <div class="header__subtitle">мини-приложение</div>
+            </div>
+        </div>
+        <button class="header__menu-btn" id="menuBtn">☰</button>
+    </div>
+
+    <div class="profile-card">
+        <div class="profile__avatar-wrapper">
+            <div class="profile__avatar online">🦀</div>
+        </div>
+        <div class="profile__name">Пользователь</div>
+        <div class="profile__status">
+            <span class="profile__status-dot"></span>
+            <span>online</span>
+        </div>
+        <div class="profile__id">
+            <span>ID:</span>
+            <div class="profile__id-text">123456</div>
+            <button class="profile__id-copy" id="copyIdBtn" title="Копировать">📋</button>
+        </div>
+    </div>
+
+    <button class="menu-item" id="referralsBtn">
+        <div class="menu-item__left">
+            <span class="menu-item__icon">🔗</span>
+            <span>Мои ссылки</span>
+        </div>
+        <span class="menu-item__arrow">›</span>
+    </button>
+
+    <button class="btn-create" id="createBtn">Создать ссылку</button>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-card__icon">⬇️</div>
+            <div class="stat-card__value">0</div>
+            <div class="stat-card__label">Получено</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__icon">🛍️</div>
+            <div class="stat-card__value">0</div>
+            <div class="stat-card__label">Куплено</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__icon">⏱️</div>
+            <div class="stat-card__value">0</div>
+            <div class="stat-card__label">Осталось</div>
+        </div>
+    </div>
+
+    <div class="welcome-section">
+        <span class="crab-animation">🦀</span>
+        <div class="welcome-title">Добро пожаловать!</div>
+        <div class="welcome-text">
+            Создавайте ссылки и делитесь ими с аудиторией. Отслеживайте статистику и получайте бонусы!
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="footer__text">
+            <span>крабик</span>
+            <span>—</span>
+            <span>твой инструмент для роста</span>
+            <span>🦀</span>
+        </div>
+        <div class="footer__version">Версия 1.0.0</div>
+    </div>
+
+    <!-- Menu Overlay -->
+    <div class="menu-overlay-backdrop" id="menuBackdrop"></div>
+    <div class="menu-overlay" id="menuOverlay">
+        <div class="menu-overlay__header">
+            <div class="menu-overlay__title">Меню</div>
+            <button class="menu-overlay__close" id="menuCloseBtn">✕</button>
+        </div>
+        <div class="menu-overlay__content">
+            <div class="menu-overlay__item" id="statsMenuItem">
+                <span class="menu-overlay__item-icon">📊</span>
+                <span class="menu-overlay__item-text">Статистика</span>
+            </div>
+            <div class="menu-overlay__item" id="shopMenuItem">
+                <span class="menu-overlay__item-icon">🛍️</span>
+                <span class="menu-overlay__item-text">Купить ссылки</span>
+            </div>
+            <div class="menu-overlay__item" id="supportMenuItem">
+                <span class="menu-overlay__item-icon">🤝</span>
+                <span class="menu-overlay__item-text">Поддержка</span>
+            </div>
+            <div class="menu-overlay__item" id="bonusMenuItem">
+                <span class="menu-overlay__item-icon">🎁</span>
+                <span class="menu-overlay__item-text">Бонусы</span>
+            </div>
+            <div class="menu-overlay__item" id="historyMenuItem">
+                <span class="menu-overlay__item-icon">📜</span>
+                <span class="menu-overlay__item-text">История</span>
+            </div>
+            <div class="menu-overlay__divider"></div>
+            <button class="menu-overlay__logout" id="logoutBtn">Выйти из аккаунта</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Telegram Web App
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            tg.setHeaderColor('#141b26');
+            tg.setBackgroundColor('#0a0e13');
+        }
+
+        // Menu functionality
+        const menuBtn = document.getElementById('menuBtn');
+        const menuCloseBtn = document.getElementById('menuCloseBtn');
+        const menuOverlay = document.getElementById('menuOverlay');
+        const menuBackdrop = document.getElementById('menuBackdrop');
+
+        function openMenu() {
+            menuOverlay.classList.add('active');
+            menuBackdrop.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMenu() {
+            menuOverlay.classList.remove('active');
+            menuBackdrop.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        menuBtn.addEventListener('click', openMenu);
+        menuCloseBtn.addEventListener('click', closeMenu);
+        menuBackdrop.addEventListener('click', closeMenu);
+
+        // Close menu when clicking items
+        document.querySelectorAll('.menu-overlay__item').forEach(item => {
+            item.addEventListener('click', closeMenu);
+        });
+
+        // Copy ID functionality
+        document.getElementById('copyIdBtn').addEventListener('click', () => {
+            const id = '123456';
+            navigator.clipboard.writeText(id).then(() => {
+                const btn = document.getElementById('copyIdBtn');
+                const originalText = btn.textContent;
+                btn.textContent = '✓';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 1500);
+            });
+        });
+
+        // Button events
+        document.getElementById('createBtn').addEventListener('click', () => {
+            if (tg) tg.showAlert('Функция создания ссылки');
+        });
+
+        document.getElementById('referralsBtn').addEventListener('click', () => {
+            if (tg) tg.showAlert('Ваши ссылки');
+        });
+
+        document.getElementById('statsMenuItem').addEventListener('click', () => {
+            if (tg) tg.showAlert('Статистика');
+        });
+
+        document.getElementById('shopMenuItem').addEventListener('click', () => {
+            if (tg) tg.showAlert('Купить ссылки');
+        });
+
+        document.getElementById('supportMenuItem').addEventListener('click', () => {
+            if (tg) tg.showAlert('Поддержка');
+        });
+
+        document.getElementById('bonusMenuItem').addEventListener('click', () => {
+            if (tg) tg.showAlert('Бонусы');
+        });
+
+        document.getElementById('historyMenuItem').addEventListener('click', () => {
+            if (tg) tg.showAlert('История');
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            if (tg) {
+                tg.sendData(JSON.stringify({ action: 'logout' }));
+            }
+        });
+    </script>
+</body>
+</html>
